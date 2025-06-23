@@ -1,11 +1,26 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
+  import { dndzone } from "svelte-dnd-action";
+  import { flip } from "svelte/animate";
 
   /** @type {{ data: import('./$types').PageData, form: import('./$types').ActionData }} */
   let { data, form } = $props();
 
   let isSubmitting = $state(false);
   let showAvailableSongs = $state(false);
+  let dragDisabled = $state(false);
+  let items: any[] = $state([]);
+
+  // Initialize items from setlist songs
+  $effect(() => {
+    items = data.setlistSongs.map(function(song: any, index: number) {
+      return {
+        id: song.id,
+        ...song,
+        position: index + 1
+      };
+    });
+  });
 
   // Resetuj stan po pomyślnej akcji
   $effect(() => {
@@ -48,6 +63,58 @@
       isSubmitting = false;
     };
   }
+
+  function handleDndConsider(e: CustomEvent) {
+    items = e.detail.items;
+  }
+
+  function handleDndFinalize(e: CustomEvent) {
+    items = e.detail.items;
+    // Send the reorder request to the server
+    const newOrder = items.map(/** @param {any} item */ (item) => item.id);
+    submitReorder(newOrder);
+  }
+
+  async function submitReorder(newOrder: number[]) {
+    const formData = new FormData();
+    formData.append('newOrder', JSON.stringify(newOrder));
+    
+    try {
+      const response = await fetch('?/reorder', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        console.log('Order updated successfully');
+      } else {
+        console.error('Failed to update order');
+        // Revert changes on error
+        items = data.setlistSongs.map(function(song: any, index: number) {
+          return {
+            id: song.id,
+            ...song,
+            position: index + 1
+          };
+        });
+      }
+    } catch (error) {
+      console.error('Error updating order:', error);
+      // Revert changes on error
+      items = data.setlistSongs.map(function(song: any, index: number) {
+        return {
+          id: song.id,
+          ...song,
+          position: index + 1
+        };
+      });
+    }
+  }
+
+  // Drag and drop is always enabled
 </script>
 
 <svelte:head>
@@ -270,7 +337,7 @@
       </div>
     </div>
 
-    {#if data.setlistSongs.length === 0}
+    {#if items.length === 0}
       <div class="mt-6 text-center py-12">
         <svg
           class="mx-auto h-12 w-12 text-gray-400"
@@ -347,13 +414,38 @@
                     </th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 bg-white">
-                  {#each data.setlistSongs as song, index (song.id)}
-                    <tr class="hover:bg-gray-50">
+                <tbody 
+                  class="divide-y divide-gray-200 bg-white"
+                  use:dndzone={{ 
+                    items, 
+                    dragDisabled,
+                    type: "setlist-songs",
+                    flipDurationMs: 300,
+                    dropTargetStyle: {},
+                    morphDisabled: true
+                  }}
+                  onconsider={handleDndConsider}
+                  onfinalize={handleDndFinalize}
+                >
+                  {#each items as song, index (song.id)}
+                    <tr 
+                      class="hover:bg-gray-50 {dragDisabled ? '' : 'cursor-move'}"
+                      animate:flip={{ duration: 300 }}
+                    >
                       <td
                         class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6"
                       >
-                        {index + 1}
+                        <div class="flex items-center">
+                          <div
+                            class="mr-2 p-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
+                            aria-label="Przeciągnij aby zmienić kolejność"
+                          >
+                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                            </svg>
+                          </div>
+                          {index + 1}
+                        </div>
                       </td>
                       <td
                         class="whitespace-nowrap px-3 py-4 text-sm text-gray-900"

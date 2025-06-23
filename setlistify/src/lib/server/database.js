@@ -291,6 +291,13 @@ export function removeSongFromSetlist(setlistId, songId) {
 export function updateSongPositions(setlistId, songPositions) {
 	try {
 		const updateTransaction = db.transaction(/** @param {Array<{songId: number|string, position: number}>} positions */ (positions) => {
+			// Step 1: Set all positions to negative values to avoid conflicts
+			for (let i = 0; i < positions.length; i++) {
+				const { songId } = positions[i];
+				statements.updateSongPosition.run(-(i + 1), setlistId, songId);
+			}
+			
+			// Step 2: Set the correct positive positions
 			for (const { songId, position } of positions) {
 				statements.updateSongPosition.run(position, setlistId, songId);
 			}
