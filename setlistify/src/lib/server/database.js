@@ -115,6 +115,9 @@ export function getAllSongs() {
 	}
 }
 
+/**
+ * @param {number|string} id
+ */
 export function getSongById(id) {
 	try {
 		return statements.getSongById.get(id);
@@ -124,6 +127,13 @@ export function getSongById(id) {
 	}
 }
 
+/**
+ * @param {Object} params
+ * @param {string} params.title
+ * @param {string|null} params.key
+ * @param {number|null} params.tempo
+ * @param {number|null} params.duration_seconds
+ */
 export function createSong({ title, key, tempo, duration_seconds }) {
 	try {
 		const result = statements.createSong.run(
@@ -139,6 +149,14 @@ export function createSong({ title, key, tempo, duration_seconds }) {
 	}
 }
 
+/**
+ * @param {number|string} id
+ * @param {Object} params
+ * @param {string} params.title
+ * @param {string|null} params.key
+ * @param {number|null} params.tempo
+ * @param {number|null} params.duration_seconds
+ */
 export function updateSong(id, { title, key, tempo, duration_seconds }) {
 	try {
 		const result = statements.updateSong.run(
@@ -158,6 +176,9 @@ export function updateSong(id, { title, key, tempo, duration_seconds }) {
 	}
 }
 
+/**
+ * @param {number|string} id
+ */
 export function deleteSong(id) {
 	try {
 		const result = statements.deleteSong.run(id);
@@ -179,6 +200,9 @@ export function getAllSetlists() {
 	}
 }
 
+/**
+ * @param {number|string} id
+ */
 export function getSetlistById(id) {
 	try {
 		return statements.getSetlistById.get(id);
@@ -188,6 +212,9 @@ export function getSetlistById(id) {
 	}
 }
 
+/**
+ * @param {string} name
+ */
 export function createSetlist(name) {
 	try {
 		const result = statements.createSetlist.run(name);
@@ -198,6 +225,9 @@ export function createSetlist(name) {
 	}
 }
 
+/**
+ * @param {number|string} id
+ */
 export function deleteSetlist(id) {
 	try {
 		const result = statements.deleteSetlist.run(id);
@@ -210,6 +240,9 @@ export function deleteSetlist(id) {
 
 // ==================== SETLIST SONGS FUNCTIONS ====================
 
+/**
+ * @param {number|string} setlistId
+ */
 export function getSetlistSongs(setlistId) {
 	try {
 		return statements.getSetlistSongs.all(setlistId);
@@ -219,10 +252,14 @@ export function getSetlistSongs(setlistId) {
 	}
 }
 
+/**
+ * @param {number|string} setlistId
+ * @param {number|string} songId
+ */
 export function addSongToSetlist(setlistId, songId) {
 	try {
 		// Pobierz następną pozycję
-		const maxPosResult = statements.getMaxPosition.get(setlistId);
+		const maxPosResult = /** @type {{ max_pos: number }} */ (statements.getMaxPosition.get(setlistId));
 		const nextPosition = maxPosResult.max_pos + 1;
 		
 		statements.addSongToSetlist.run(setlistId, songId, nextPosition);
@@ -233,6 +270,10 @@ export function addSongToSetlist(setlistId, songId) {
 	}
 }
 
+/**
+ * @param {number|string} setlistId
+ * @param {number|string} songId
+ */
 export function removeSongFromSetlist(setlistId, songId) {
 	try {
 		const result = statements.removeSongFromSetlist.run(setlistId, songId);
@@ -243,9 +284,13 @@ export function removeSongFromSetlist(setlistId, songId) {
 	}
 }
 
+/**
+ * @param {number|string} setlistId
+ * @param {Array<{songId: number|string, position: number}>} songPositions
+ */
 export function updateSongPositions(setlistId, songPositions) {
 	try {
-		const updateTransaction = db.transaction((positions) => {
+		const updateTransaction = db.transaction(/** @param {Array<{songId: number|string, position: number}>} positions */ (positions) => {
 			for (const { songId, position } of positions) {
 				statements.updateSongPosition.run(position, setlistId, songId);
 			}

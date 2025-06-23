@@ -26,11 +26,11 @@ export const actions = {
 	// Tworzenie nowego utworu
 	create: async ({ request }) => {
 		const data = await request.formData();
-		const title = data.get('title');
-		const key = data.get('key');
-		const tempo = data.get('tempo');
-		const duration_minutes = data.get('duration_minutes');
-		const duration_seconds_input = data.get('duration_seconds');
+		const title = /** @type {string} */ (data.get('title'));
+		const key = /** @type {string} */ (data.get('key'));
+		const tempo = /** @type {string} */ (data.get('tempo'));
+		const duration_minutes = /** @type {string} */ (data.get('duration_minutes'));
+		const duration_seconds_input = /** @type {string} */ (data.get('duration_seconds'));
 
 		// Walidacja
 		if (!title || title.trim().length === 0) {
@@ -47,15 +47,15 @@ export const actions = {
 		try {
 			// Konwersja czasu trwania na sekundy
 			let duration_seconds = null;
-			if (duration_minutes && !isNaN(duration_minutes)) {
+			if (duration_minutes && !isNaN(Number(duration_minutes))) {
 				duration_seconds = parseInt(duration_minutes) * 60;
 			}
-			if (duration_seconds_input && !isNaN(duration_seconds_input)) {
+			if (duration_seconds_input && !isNaN(Number(duration_seconds_input))) {
 				duration_seconds = (duration_seconds || 0) + parseInt(duration_seconds_input);
 			}
 
 			// Konwersja tempo na liczbę
-			const tempoNumber = tempo && !isNaN(tempo) ? parseInt(tempo) : null;
+			const tempoNumber = tempo && !isNaN(Number(tempo)) ? parseInt(tempo) : null;
 
 			const newSong = createSong({
 				title: title.trim(),
@@ -85,12 +85,12 @@ export const actions = {
 	// Aktualizacja utworu
 	update: async ({ request }) => {
 		const data = await request.formData();
-		const id = data.get('id');
-		const title = data.get('title');
-		const key = data.get('key');
-		const tempo = data.get('tempo');
-		const duration_minutes = data.get('duration_minutes');
-		const duration_seconds_input = data.get('duration_seconds');
+		const id = /** @type {string} */ (data.get('id'));
+		const title = /** @type {string} */ (data.get('title'));
+		const key = /** @type {string} */ (data.get('key'));
+		const tempo = /** @type {string} */ (data.get('tempo'));
+		const duration_minutes = /** @type {string} */ (data.get('duration_minutes'));
+		const duration_seconds_input = /** @type {string} */ (data.get('duration_seconds'));
 
 		// Walidacja
 		if (!id || !title || title.trim().length === 0) {
@@ -108,15 +108,15 @@ export const actions = {
 		try {
 			// Konwersja czasu trwania na sekundy
 			let duration_seconds = null;
-			if (duration_minutes && !isNaN(duration_minutes)) {
+			if (duration_minutes && !isNaN(Number(duration_minutes))) {
 				duration_seconds = parseInt(duration_minutes) * 60;
 			}
-			if (duration_seconds_input && !isNaN(duration_seconds_input)) {
+			if (duration_seconds_input && !isNaN(Number(duration_seconds_input))) {
 				duration_seconds = (duration_seconds || 0) + parseInt(duration_seconds_input);
 			}
 
 			// Konwersja tempo na liczbę
-			const tempoNumber = tempo && !isNaN(tempo) ? parseInt(tempo) : null;
+			const tempoNumber = tempo && !isNaN(Number(tempo)) ? parseInt(tempo) : null;
 
 			const updatedSong = updateSong(parseInt(id), {
 				title: title.trim(),
@@ -132,7 +132,7 @@ export const actions = {
 			};
 		} catch (error) {
 			console.error('Error updating song:', error);
-			if (error.message === 'Song not found') {
+			if (/** @type {Error} */ (error).message === 'Song not found') {
 				return fail(404, {
 					error: 'Utwor nie został znaleziony'
 				});
@@ -152,7 +152,7 @@ export const actions = {
 	// Usuwanie utworu
 	delete: async ({ request }) => {
 		const data = await request.formData();
-		const id = data.get('id');
+		const id = /** @type {string} */ (data.get('id'));
 
 		if (!id) {
 			return fail(400, {
