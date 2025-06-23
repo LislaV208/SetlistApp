@@ -2,16 +2,16 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 
-	export let data;
-	export let form;
+	/** @type {import('./$types').PageProps} */
+	let { data, form } = $props();
 
-	let { songs } = data;
-	$: ({ songs } = data);
+	// Reaktywny dostęp do songs
+	let songs = $derived(data.songs);
 
 	// Stan formularza
-	let showAddForm = false;
-	let editingSong = null;
-	let isSubmitting = false;
+	let showAddForm = $state(false);
+	let editingSong = $state(null);
+	let isSubmitting = $state(false);
 
 	// Funkcje pomocnicze
 	function formatDuration(seconds) {
@@ -77,7 +77,7 @@
 		<div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
 			<button
 				type="button"
-				on:click={showAdd}
+				onclick={showAdd}
 				class="block rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-colors duration-200"
 			>
 				Dodaj utwór
@@ -204,7 +204,7 @@
 					<div class="mt-6 flex items-center justify-end gap-x-6">
 						<button
 							type="button"
-							on:click={cancelEdit}
+							onclick={cancelEdit}
 							class="text-sm font-semibold leading-6 text-gray-900 hover:text-gray-700 transition-colors duration-200"
 						>
 							Anuluj
@@ -312,7 +312,7 @@
 				<div class="mt-6 flex items-center justify-end gap-x-6">
 					<button
 						type="button"
-						on:click={cancelEdit}
+						onclick={cancelEdit}
 						class="text-sm font-semibold leading-6 text-gray-900 hover:text-gray-700 transition-colors duration-200"
 					>
 						Anuluj
@@ -341,7 +341,7 @@
 				<div class="mt-6">
 					<button
 						type="button"
-						on:click={showAdd}
+						onclick={showAdd}
 						class="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-colors duration-200"
 					>
 						<svg class="-ml-0.5 mr-1.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -398,7 +398,7 @@
 										<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
 											<button
 												type="button"
-												on:click={() => startEdit(song)}
+												onclick={() => startEdit(song)}
 												class="text-blue-600 hover:text-blue-900 mr-4 transition-colors duration-200"
 											>
 												Edytuj
